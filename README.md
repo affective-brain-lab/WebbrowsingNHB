@@ -11,4 +11,4 @@ NHB_Study_3:
 cols: ID = Participant ID; Condition = Experimental Condition (0 = Control, 1 = Negative Valence Condition); Mood_Before = Moor prior to manipulation,	Mood_After = Mood after manipulation;	Gender;	Age;	Ethnicity;	English;	Education;	Income;	Neg_Val =  NRC Negative Valence of Webpages Vistited. 
 
 NHB_Study4:
-cols: Id_Short = Participant ID;	Condition_Short = Experimental Conditions;	N_Feel_Better_Short = Number of Feel Better Links Selected;	N_Feel_Neutral_Short = Number of Neutral Links Selected;	N_Feel_Worse_Short = Number of Feel Worse Links Selected;	Age;	Gender;	Ethnicity
+cols: Id_Short = Participant ID;	Condition_Short = Experimental Conditions (0 = no label condition, 1 = label condition);	N_Feel_Better_Short = Number of Feel Better Links Selected;	N_Feel_Neutral_Short = Number of Neutral Links Selected;	N_Feel_Worse_Short = Number of Feel Worse Links Selected;	Age;	Gender;	Ethnicity
