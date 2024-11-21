@@ -1,92 +1,88 @@
-library(tm)
-library(stringr)
-library(rlist)
-library(tokenizers)
-library(lexicon)
-library(wordcloud)
+# Load necessary libraries
+library(tm)          # Text mining
+library(stringr)     # String manipulation
+library(tokenizers)  # Tokenization
+library(lexicon)     # Lexicon for sentiment analysis
+library(wordcloud)   # Word cloud generation
 
-VAD<- NRC_VAD
+# Load NRC VAD lexicon
+VAD <- NRC_VAD
 
-Valence_Pos_75_Data <- subset(VAD[1:2], VAD$Valence >= .75,
-                              select=c(Word))
-Valence_Pos_75_Data<- unlist(Valence_Pos_75_Data)
+# Filter words with high and low valence
+Valence_Pos_75_Data <- subset(VAD[1:2], VAD$Valence >= 0.75, select = c(Word))
+Valence_Pos_75_Data <- unlist(Valence_Pos_75_Data)
 
-Valence_Neg_25_Data <- subset(VAD[1:2], VAD$Valence <= .25,
-                              select=c(Word))
-Valence_Neg_25_Data<- unlist(Valence_Neg_25_Data)
-length(Valence_Neg_25_Data)
+Valence_Neg_25_Data <- subset(VAD[1:2], VAD$Valence <= 0.25, select = c(Word))
+Valence_Neg_25_Data <- unlist(Valence_Neg_25_Data)
 
-#x <- (seq(1,200,1))
-df1<-list()
+# Initialize an empty list to store results
+df1 <- list()
 
-for (i in 2:length(x)){
-  
-  iteration <- 
-  folder<-paste(("data)file.csv"), iteration)
+# Define the folder containing subject files
+folder_path <- "study_study_folder"
 
-  folder<-gsub(" ", "", folder)
-  #folder<- file.names
-  filelist<-list.files(path=folder, full.names = FALSE)
-  cbind(filelist)
-  #list.txt <- dir(pattern = "*.txt") # creates the list of all the asc files in the directory
-  if (length(filelist)<3){
+# Get a list of all files in the folder
+file_list <- list.files(path = folder_path, full.names = TRUE)
 
-  }else{
-    
-    
-    #write.csv(filelist, "UK_filelist")
-    filelist<-paste(folder,"/", filelist, sep="")
-    typeof(filelist)
-    filelist<-lapply(filelist, FUN = readLines)
-    corpus.list<-lapply(filelist, FUN=paste, collapse= " ")
-    
-    corpus.list2<- gsub(pattern = "\\W", replace= " ", corpus.list)
-    corpus.list2<- gsub(pattern = "\\d", replace=" ", corpus.list2)
-    corpus.list2<-tolower((corpus.list2))
-    corpus.list2<-removeWords(corpus.list2, stopwords())
-    corpus.list2<- gsub(pattern ="\\b[A-z]\\b{1}", replace= " ", corpus.list2)
-    corpus.list2<-stripWhitespace(corpus.list2)
+# Loop through each file in the folder
+for (file_path in file_list) {
+  # Read and preprocess the text
+  file_content <- readLines(file_path)
+  text_content <- paste(file_content, collapse = " ") # Combine lines into a single string
 
-    
-    corpus.official<- Corpus(VectorSource(corpus.list2))
-    tdm<- TermDocumentMatrix(corpus.official)
+  # Remove URLs
+  text_content <- gsub("http[s]?://\\S+|www\\.\\S+", " ", text_content)
 
-    corpus3<- str_split(corpus.list2, pattern = "\\s+")
-    tokens<-unlist(corpus3)
-    
-    Number_Words<- lapply(corpus3, function(x){ sum(!is.na(match(x,tokens)))})
-    Number_Words<-unlist(Number_Words)
-    
-    Number_Pas_Val<- lapply(corpus3, function(x){ sum(!is.na(match(x,Valence_Pos_75_Data)))})
-    Number_Pas_Val <-unlist(Number_Pas_Val)
-    Number_Neg_Val<- lapply(corpus3, function(x){ sum(!is.na(match(x,Valence_Neg_25_Data)))})
-    Number_Neg_Val <-unlist(Number_Neg_Val)
+  # Remove emojis (Unicode emoji range and other special symbols)
+  text_content <- gsub("[\\p{So}\\p{Cn}]", " ", text_content, perl = TRUE)
 
-    
-    
-    PosDivWords<- (Number_Pas_Val/Number_Words)
-    PosDivWords<- as.numeric(PosDivWords)
-    MeanPosDivWords<- mean(PosDivWords)
-    as.data.frame(PosDivWords)
-    
-    NegDivWords<- (Number_Neg_Val/Number_Words)
-    NegDivWords<- as.numeric(NegDivWords)
-    MeanNegDivWords<- mean(NegDivWords)
-    as.data.frame(NegDivWords)
-    
+  # Remove punctuation, symbols, and other non-alphanumeric characters
+  text_content <- gsub("\\W", " ", text_content)
 
-    
-    TemporalOutput<- cbind(PosDivWords,NegDivWords )
-    as.data.frame(TemporalOutput)
-    
-    
-  }
-  df1<-rbind(df1,TemporalOutput)
-  #df2<-rbind(df2,output2)
-  #df3<-rbind(df3,output3)
-  
-  print(i)
+  # Remove digits
+  text_content <- gsub("\\d", " ", text_content)
+
+  # Convert to lowercase
+  text_content <- tolower(text_content)
+
+  # Remove stopwords
+  text_content <- removeWords(text_content, stopwords())
+
+  # Remove single letters
+  text_content <- gsub("\\b[A-z]\\b{1}", " ", text_content)
+
+  # Remove extra whitespace
+  text_content <- stripWhitespace(text_content)
+
+  # Tokenize the text
+  tokens <- unlist(str_split(text_content, "\\s+"))
+
+  # Calculate word counts
+  total_words <- length(tokens)
+  positive_words <- sum(!is.na(match(tokens, Valence_Pos_75_Data)))
+  negative_words <- sum(!is.na(match(tokens, Valence_Neg_25_Data)))
+
+  # Compute sentiment scores
+  pos_div_words <- ifelse(total_words > 0, positive_words / total_words, 0)
+  neg_div_words <- ifelse(total_words > 0, negative_words / total_words, 0)
+
+  # Store results in a data frame
+  file_results <- data.frame(
+    File = basename(file_path),
+    Positive_Sentiment = pos_div_words,
+    Negative_Sentiment = neg_div_words
+  )
+
+  # Append results to the main list
+  df1 <- rbind(df1, file_results)
 }
-df1
-write.csv(df1, "test")
-#write.csv(df1,"Test3")
+
+# Combine all results into a single data frame
+df1 <- do.call(rbind, df1)
+
+# Save the results to a CSV file
+output_file <- "sentiment_analysis_results.csv"
+write.csv(df1, output_file, row.names = FALSE)
+
+# Print completion message
+cat("Sentiment analysis completed. Results saved to", output_file, "\n")
