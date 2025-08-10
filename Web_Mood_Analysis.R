@@ -6,7 +6,7 @@ library(readxl)
 ########### Load Data ###########
 data1 <- read_excel("NHB_Study1_Long_Mood_Data.xlsx")
 data1 <- subset(data1, Filter_5_Days_of_Data == 1) # 5 days of data submitted & Min Valence values per day
-data1 <- subset(data1, Browse_in_Session_Check == 2) # Participants were included in mood analysis if they engaged in web searches during the experiment, allowing alignment with mood ratings.
+data1 <- subset(data1, Browse_in_Session_Check == 1) # Participants were included in mood analysis if they engaged in web searches during the experiment, allowing alignment with mood ratings.
 
 data2 <- read_excel("NHB_Study_2.xlsx")
 data2 <- subset(data2, Filter_3_min == 1) # Min 3 valence values.
